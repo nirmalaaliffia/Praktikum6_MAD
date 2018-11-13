@@ -8,11 +8,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
+
 public class FetchBook extends AsyncTask<String, Void, String> {
     private WeakReference<TextView> mTitleText;
     private WeakReference<TextView> mAuthorText;
 
-    public FetchBook(TextView mTitleText, TextView mAuthorText) {
+    // Constructor, provides references to the views in MainActivity.
+    FetchBook(TextView titleText, TextView authorText) {
         this.mTitleText = new WeakReference<>(titleText);
         this.mAuthorText = new WeakReference<>(authorText);
     }
@@ -22,6 +24,13 @@ public class FetchBook extends AsyncTask<String, Void, String> {
         return NetworkUtils.getBookInfo(strings[0]);
     }
 
+    /**
+     * Handles the results on the UI thread. Gets the information from
+     * the JSON result and updates the views.
+     *
+     * @param s Result from the doInBackground() method containing the raw
+     *          JSON response, or null if it failed.
+     */
     @Override
     protected void onPostExecute(String s) {
         super.onPostExecute(s);
@@ -37,9 +46,8 @@ public class FetchBook extends AsyncTask<String, Void, String> {
             String title = null;
             String authors = null;
 
-            // Look for results in the items array, exiting
-            // when both the title and author
-            // are found or when all items have been checked.
+            // Look for results in the items array, exiting when both the
+            // title and author are found or when all items have been checked.
             while (i < itemsArray.length() &&
                     (authors == null && title == null)) {
                 // Get the current item information.
@@ -51,7 +59,7 @@ public class FetchBook extends AsyncTask<String, Void, String> {
                 try {
                     title = volumeInfo.getString("title");
                     authors = volumeInfo.getString("authors");
-                } catch (Exception e) {
+                } catch (JSONException e) {
                     e.printStackTrace();
                 }
 
@@ -64,17 +72,18 @@ public class FetchBook extends AsyncTask<String, Void, String> {
                 mTitleText.get().setText(title);
                 mAuthorText.get().setText(authors);
             } else {
-                // If none are found, update the UI to
-                // show failed results.
+                // If none are found, update the UI to show failed results.
                 mTitleText.get().setText(R.string.no_results);
                 mAuthorText.get().setText("");
             }
 
         } catch (Exception e) {
-            // If onPostExecute does not receive a proper JSON string,
+            // If onPostExecute() does not receive a proper JSON string,
             // update the UI to show failed results.
             mTitleText.get().setText(R.string.no_results);
             mAuthorText.get().setText("");
+            e.printStackTrace();
         }
+
     }
 }
